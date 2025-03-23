@@ -19,6 +19,14 @@
 #
 # LUKS_NET_REMOTE_KEY_PATH=data/<hostname>
 
+# Number of times to retry before giving up. Default 5
+#
+# LUKS_NET_RETRY_COUNT=5
+
+# Sleep time between tries
+#
+# LUKS_NET_RETRY_SLEEP_TIME=0.5
+
 # Additional command line options to pass to scp(1)
 #
 # LUKS_NET_SCP_OPTIONS=""

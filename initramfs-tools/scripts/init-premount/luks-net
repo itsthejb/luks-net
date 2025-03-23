@@ -24,6 +24,8 @@ set_options() {
     LUKS_NET_REMOTE_USER=luks-net
     LUKS_NET_REMOTE_KEY_PATH="data/$(hostname)"
     LUKS_NET_SCP_OPTIONS=
+    LUKS_NET_RETRY_COUNT=5  # Default value
+    LUKS_NET_RETRY_SLEEP_TIME=0.5  # Default sleep time
 
     if [ -r /etc/luks-net/config ] ; then
         . /etc/luks-net/config
@@ -43,25 +45,25 @@ $LUKS_NET_SCP_OPTIONS
 run_luks_net() {
     if [ -x /bin/cryptroot-unlock ] ; then
         KEY_FILE=/run/luks.key
-        # The network could be down for a long time ....
-        RETRY=600
+        set_options
+        RETRY=${LUKS_NET_RETRY_COUNT}
         while [ $RETRY -gt 0 ] ; do
-            set_options
             if scp $SCP_OPTS $REMOTE_KEY $KEY_FILE ; then
                 break
             fi
-            sleep 0.5
+            log_warning_msg "luks-net: retrying to load key from server, attempts left: $RETRY"
+            sleep $LUKS_NET_RETRY_SLEEP_TIME
             RETRY=$(( $RETRY - 1 ))
         done
         if [ $RETRY -gt 0 ] ; then
             log_success_msg "luks-net: loaded key from server"
             key=$(cat $KEY_FILE)
             rm -f $KEY_FILE
-            # cryptroot-unlock already has a 10 second timeout built in ...
-            RETRY=5
+            RETRY=${LUKS_NET_RETRY_COUNT}
             while [ $RETRY -gt 0 ] ; do
                 echo -n "$key" | /bin/cryptroot-unlock && break
-                sleep 0.5
+                log_warning_msg "luks-net: retrying to unlock volume, attempts left: $RETRY"
+                sleep $LUKS_NET_RETRY_SLEEP_TIME
                 RETRY=$(( $RETRY - 1 ))
             done
             if [ $RETRY -gt 0 ] ; then
