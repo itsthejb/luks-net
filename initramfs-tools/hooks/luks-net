@@ -32,3 +32,5 @@ fi
 
 copy_exec /usr/bin/scp
 copy_exec /usr/bin/ssh
+copy_exec /usr/bin/sleep
+copy_exec /usr/bin/hostname

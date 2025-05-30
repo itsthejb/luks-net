@@ -22,7 +22,7 @@ REMOTE_KEY=
 set_options() {
     LUKS_NET_REMOTE_SERVER=key-server
     LUKS_NET_REMOTE_USER=luks-net
-    LUKS_NET_REMOTE_KEY_PATH="data/$(hostname)"
+    LUKS_NET_REMOTE_KEY_PATH="data/$(/usr/bin/hostname)"
     LUKS_NET_SCP_OPTIONS=
 
     if [ -r /etc/luks-net/config ] ; then
@@ -47,10 +47,10 @@ run_luks_net() {
         RETRY=600
         while [ $RETRY -gt 0 ] ; do
             set_options
-            if scp $SCP_OPTS $REMOTE_KEY $KEY_FILE ; then
+            if /usr/bin/scp $SCP_OPTS $REMOTE_KEY $KEY_FILE ; then
                 break
             fi
-            sleep 0.5
+            /usr/bin/sleep 0.5
             RETRY=$(( $RETRY - 1 ))
         done
         if [ $RETRY -gt 0 ] ; then
@@ -61,7 +61,7 @@ run_luks_net() {
             RETRY=5
             while [ $RETRY -gt 0 ] ; do
                 echo -n "$key" | /bin/cryptroot-unlock && break
-                sleep 0.5
+                /usr/bin/sleep 0.5
                 RETRY=$(( $RETRY - 1 ))
             done
             if [ $RETRY -gt 0 ] ; then
